@@ -1,0 +1,60 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <TargetFramework>net7.0</TargetFramework>
+    <Copyright>Copyright © ConsentX</Copyright>
+    <Company>ConsentX</Company>
+    <Authors>ConsentX</Authors>
+    <Version>1.0.0</Version>
+    <Description>1-click cookie consent banner, Google Consent Mode v2 and pre-consent script blocking for GDPR / CCPA / DPDPA. Connect your ConsentX account and the widget installs itself.</Description>
+    <PackageLicenseExpression>GPL-2.0-or-later</PackageLicenseExpression>
+    <OutputPath>..\..\Presentation\Nop.Web\Plugins\Widgets.ConsentX</OutputPath>
+    <OutDir>$(OutputPath)</OutDir>
+    <!-- This property is needed so that the build process does not copy plugin
+         dependencies that already ship with nopCommerce into the plugin folder. -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <EnableDefaultContentItems>false</EnableDefaultContentItems>
+    <RazorCompileOnBuild>false</RazorCompileOnBuild>
+    <RazorCompileOnPublish>false</RazorCompileOnPublish>
+    <PreserveCompilationContext>false</PreserveCompilationContext>
+    <AddRazorSupportForMvc>true</AddRazorSupportForMvc>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="plugin.json" />
+    <None Remove="logo.jpg" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Files that must be copied next to the built plugin assembly. -->
+    <Content Include="plugin.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="logo.jpg">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Content\**\*.*">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\**\*.cshtml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Views\**\*_ViewImports.cshtml" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- nopCommerce framework references. These projects exist in the
+         nopCommerce solution; the OutputPath above places the build artefacts
+         straight into the running Web app's Plugins folder. -->
+    <ProjectReference Include="..\..\Presentation\Nop.Web.Framework\Nop.Web.Framework.csproj" />
+    <ClearPluginAssemblies Include="$(MSBuildProjectDirectory)\..\..\Build\ClearPluginAssemblies.proj" />
+  </ItemGroup>
+
+  <!-- This target ensures that the plugin's referenced framework assemblies are
+       not copied into the plugin output folder, exactly as core plugins do. -->
+  <Target Name="NopTarget" AfterTargets="Build">
+    <MSBuild Projects="@(ClearPluginAssemblies)" Properties="PluginPath=$(MSBuildProjectDirectory)\$(OutDir)" Targets="NopClear" Condition="Exists('@(ClearPluginAssemblies)')" />
+  </Target>
+
+</Project>
